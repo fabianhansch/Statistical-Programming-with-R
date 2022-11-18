@@ -1,0 +1,417 @@
+---
+title: 'SDGB-7844 Homework #4: Probability Distributions'
+author: "Fabian Hansch Mauritzson"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The Geometric Probability Distribution & Weak Law of Large Numbers
+
+A random variable with the geometric probability distribution is associated with an experiment that shares some of the characteristics of a binomial experiment.  This experiment also involves identical and independent trials, each of which can result in one of two outcomes: success or failure.  The probability of success is equal to $p$ and is constant from trial to trial.  However, instead of the number of successes that occur in $n$ trials, the geometric random variable is the number of trials on which the first success occurs.  The geometric probability distribution is often used to model distributions of lengths of waiting times.
+
+Let us roll a $K$ sided die with numbers $1$, . . . , $K$ written on them where $K > 1$.  Each number is equally likely to be rolled.  Let $X$ be a random variable representing the number of rolls needed to get the number $K$ for the first time.  (Note:  number of rolls includes the roll where $K$ appears.)
+
+1. On any roll, what is the probability of rolling the value $K$?
+
+1/$K$
+
+2. What are all of the possible values of $X$?
+
+Every positive integer from 1 to infinity.
+
+3. Create a function with arguments, ```K``` and ```simulations```, with ```simulations``` representing the number of times we should play out this scenario.  Your function should return the number of times the die was rolled in order to get the value ```K```.  (Helpful hint: Try using a while loop)
+
+```{r}
+amount_of_rolls <- function(K, simulations) {
+  #Creating the empty vector for the rolls per sim
+  rolls <- c()
+  for (i in 1:simulations) {
+    x <- 0
+    rolls_count <- 0
+    while(x != K) {
+      x <- sample(1:K)
+      
+      #Only taking the first value since that's what was rolled
+      x <- x[1]
+      rolls_count <- rolls_count + 1
+      #print(x)
+    }
+    rolls <- append(rolls, rolls_count)
+  }
+  return(rolls)
+}
+
+```
+
+
+4.  For $K = [2, 6, 12, 15]$ simulate 100 rounds of the scenario and plot each set of results with a bar graph.
+
+```{r}
+#Input values
+K_array <- c(2, 6, 12, 15)
+sims <- 100
+result <- c()
+
+#For loop which calls the function in Q3 and creates the plots
+for (i in 1:length(K_array)) {
+  result <- append(result, amount_of_rolls(K_array[i], sims))
+  barplot(result, main = paste("Rolls needed for", toString(K_array[i])), xlab = "Simulation #", ylab = "Rolls")
+  result <- c()
+}
+#barplot(result)
+
+```
+
+
+5.  Repeat question 4 by simulating 100 new rounds of each scenario and plot the results.  Have your results changed?  Please explain how they have changed.  Why might your results be different?
+
+ANSWER: The results are slightly different since there is a rgeom function in the amount_of_rolls function. This means that the results will always differ from case to case since there is a random variable in the calcualations.
+```{r}
+#Input values
+K_array <- c(2, 6, 12, 15)
+sims <- 100
+result <- c()
+
+#For loop which calls the function in Q3 and creates the plots
+for (i in 1:length(K_array)) {
+  result <- append(result, amount_of_rolls(K_array[i], sims))
+  barplot(result, main = paste("Rolls needed for", toString(K_array[i])), xlab = "Simulation #", ylab = "Rolls")
+  result <- c()
+}
+
+```
+
+
+6.  For each combination of ```simulations`` = [100, 1000, 5000, 20000] and $K$ = [2, 6, 12, 15] calculate the average number of rolls required to get $K$.  Show these results in a table where your columns are values of n_sim and your rows are values of $K$.
+
+```{r}
+#Input values
+K_array <- c(2, 6, 12, 15)
+sims <- c(100, 1000, 5000, 20000)
+result <- c()
+mean_vector <- c()
+
+#Since there are two different vectors with data, nested for loop is required
+for (i in 1:length(sims)) {
+  for (j in 1:length(K_array)) {
+    result <- append(result, amount_of_rolls(K_array[j], sims[i]))
+    mean_vector <- append(mean_vector, mean(result))
+    result <- c()
+  }
+  #mean_vector <- append(mean_vector, mean(result))
+  #result <- c()
+}
+
+#Data cleaning required in order to tabularize it
+n_sim100 <- mean_vector[1:4]
+n_sim1000 <- mean_vector[5:8]
+n_sim5000 <- mean_vector[9:12]
+n_sim20000 <- mean_vector[13:16]
+df <- data.frame(n_sim100, n_sim1000, n_sim5000, n_sim20000, row.names = c("2", "6", "12", "15"))
+df
+
+```
+
+
+7.  How would you describe a general formula for calculating the average number of rolls?
+
+Simply $K$.
+
+8.  For $K$ = 6 and ```simulations``` = 1000, estimate the following probabilities using your simulation function:
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+x        & 1 & 2 & 3 & 4 & 5 & 6 & 7 or Greater \\ \hline
+P(X = x) &   &   &   &   &   &   &              \\ \hline
+\end{tabular}
+\end{table}
+
+```{r}
+#Variables to hold the count of all the rolls
+one <- 0
+two <- 0
+three <- 0
+four <- 0
+five <- 0
+six <- 0
+seven_or_more <- 0
+
+#Making the simulation
+input_data <- amount_of_rolls(6, 1000)
+
+#Assign all the data to respective variable
+for (i in 1:length(input_data)) {
+  if (input_data[i] == 1) {
+    one <- one + 1
+  } else if (input_data[i] == 2) {
+    two <- two + 1
+  } else if (input_data[i] == 3) {
+    three <- three + 1
+  } else if (input_data[i] == 4) {
+    four <- four + 1
+  } else if (input_data[i] == 5) {
+    five <- five + 1
+  } else if (input_data[i] == 6) {
+    six <- six + 1
+  } else if (input_data[i] >= 7) {
+    seven_or_more <- seven_or_more + 1
+  }
+}
+
+#Getting the proportions
+result_8 <- c(one/length(input_data), two/length(input_data), three/length(input_data), four/length(input_data), five/length(input_data), six/length(input_data), seven_or_more/length(input_data))
+#result_8
+
+#Creating rows for data transformation
+row_1_8 <- c("x", 1, 2, 3, 4, 5, 6, "7 or More")
+row_2_8 <- c("P(X = x)", result_8[1], result_8[2],result_8[3],result_8[4],result_8[5],result_8[6],result_8[7])
+
+#Making it into a df
+df_8 <- rbind(row_1_8, row_2_8)
+df_8
+```
+
+
+9.  In theory, is the probability $P(X = 500)$ > 0 when $K$ = 6?  Explain.
+
+Yes, there is alwyas a chance that there will be an outlier in the simulations which will create 
+
+10.  Given that the probability mass function for the a geometric distributed random variable $X$ is  $$P(X = x) = P( \overbrace{Fail, Fail,...,Fail}^{x-1}, Success) = qq...qp= q^{x-1}p$$ Use the functions ```dgeom()``` and ```pgeom()``` to calculate the probabilites in question 8.  For the ```x``` arguments, enter the outcomes ```x-1``` and your answer for #1 for the argument prob.  (Hint: Check ?dgeom if you need help)
+
+```{r}
+#Getting the corresponding values from the geometric dist
+one_10 <- dgeom(0, 1/6)
+two_10 <- dgeom(1, 1/6)
+three_10 <- dgeom(2, 1/6)
+four_10 <- dgeom(3, 1/6)
+five_10 <- dgeom(4, 1/6)
+six_10 <- dgeom(5, 1/6)
+#Seven or greater needs pgeom since we need >= and not ==
+seven_10 <- pgeom(6, 1/6, lower.tail = FALSE)
+
+#Getting the distribution
+result_10 <- c(one_10, two_10, three_10, four_10, five_10, six_10, seven_10)
+
+#Data cleaning
+row_1_10 <- c("x", 1, 2, 3, 4, 5, 6, "7 or More")
+row_2_10 <- c("P(X = x)", result_10[1], result_10[2],result_10[3],result_10[4],result_10[5],result_10[6],result_10[7])
+df_10 <- rbind(row_1_10, row_2_10)
+df_10
+```
+
+
+11.  Create a figure with two plots side by side: The first plot of the empirical probability mass function estimate based on the data simulated in #8 (histogram is acceptable - use ```prob=TRUE```).  The second plot should plot the theorical probability mass function for our data in #10.
+
+```{r}
+par(mfrow=c(1,2))
+#Empirical PMF graph
+hist(input_data, prob = TRUE, main = "Empirical PMF", xlab = "Amount", ylab = "Probability", breaks = 7)
+
+#Theoretical PMF graph
+plot(result_10, prob = TRUE, ylab = "Probability", xlab = "Values", main = "Theoretical PMF")
+
+```
+
+
+12.  How close are your answers from your simulation to the probabilities from the geometric distribution you just created?  Describe this given what we've learned about the Weak Law of Large Numbers in lecture 8.  What parameters need to change in our function in order for our empirical probabilities to match the theoretical values for $(X=x)$
+
+They are quite similar when X is closer to 0. They follow closely until 7 or more for the theoretical PMF. This means that the values are scewed more left in the empirical than the theoretical data. With the Weak Law of Large Numbers, it is clear that an increase in the sample size would make the emirical data less skewed, and with that closer resembled to the theoretical values. 
+
+
+13.  For $K$ = 6, and ```simulations``` = [1 - 5000] (Hint: use a for loop) plot the mean of each sample as a line graph.  Add a horizontal line at the theorical mean (6).  What is your observation of this relationship between n_sim and the mean of our sample?  If your code takes longer than 5 minutes to run you may reduce the simulations to a lower number.  
+
+The higher the n_sim, the lower the variation between the different means. 
+```{r}
+data_13 <- c()
+for (i in 1:1000) {
+  data_13 <- append(data_13, mean(amount_of_rolls(6, i)))
+}
+plot(data_13, type = "l", main = "1-5000 Simulation Mean", xlab = "Simulation", ylab = "Mean of Simulations")
+abline(h = 6, col = "red")
+
+
+```
+
+
+14.  For $K$ = 6, what is the probability that it takes more than 12 rolls to roll a 6?
+
+```{r}
+pgeom(12, 1/6, lower.tail = FALSE)
+```
+
+
+15.  For $K$ = 6, what is the probability that you roll a 6 in your first three rolls?
+
+```{r}
+#Since x in dgeom function is amount of FAILURES, then x = 0 needs to be used as first value.
+dgeom(0, 1/6) + dgeom(1, 1/6) + dgeom(2, 1/6)
+```
+
+
+16.  For $K$ = 6, what is the 95th percentile for number of rolls required to roll a 6?
+
+```{r}
+qgeom(0.95, 1/6)
+
+```
+
+
+## The Exponential Probability Distribution & Central Limit Theorem
+
+The magnitude of earthquakes in North America can be modeled as having an exponential distribution with mean $\mu$ of 2.4.
+
+For an _exponential distribution_:
+
+**Mean:** $\mathbb{E}[X] = {\lambda}$
+
+**Variance:** $\mathbb{E}[X^2] - (\mathbb{E}[X])^2 = \lambda^2$
+
+18. Simulate 1000 earthquakes and plot the distribution of Richter Scale values (Hint: ```rexp(x, rate = 1/lambda)```).  Let this data represent $X$. Create a histogram of $X$ and describe the shape of this distribution.  How does this differ from the normal distribution?
+
+This distribution has a higher density of the data closer to 0 rather than the mean like in the normal distribution
+```{r}
+#Simulate the data
+data_18 <- rexp(1000, 1/2.4)
+
+#Create the graph
+hist(data_18, prob = TRUE, ylim = c(0, 0.5), breaks = 20, main = "Distribution of Richter Scale Values", xlab = "X values")
+
+```
+
+
+19.  Find the probability that an earthquake occurring in North America will fall between 2 and 4 on the Richter Scale.
+
+```{r}
+#Getting the higher and lower value to calculate the between 2-4
+lower_data <- pexp(2, 1/2.4)
+higher_data <- pexp(4, 1/2.4, lower.tail = FALSE)
+result_19 <- 1 - lower_data - higher_data
+
+result_19
+
+```
+
+
+20.  How rare is an earthquake with a Richter Scale value of greater than 9?
+
+```{r}
+pexp(9, 1/2.4, lower.tail = FALSE)
+
+```
+
+
+21.  Create a function which will simulate multiple samples drawn from an exponential distribution with $\lambda$ = 2.4 (Hint: ```rexp(x, rate = 1/lambda)``` and return a vector containing the mean values for each of your samples.  Your arguments should be lamba, simulations for the number of simulations per sample, and n (sample size) for the number of samples of size simulations to be created.  
+
+```{r}
+richter_scale <- function(lambda, simulations, n) {
+  array_21 <- c()
+  for (i in 1:n) {
+    #Simulating the data
+    data_21 <- rexp(simulations, 1/lambda)
+    
+    #Get the mean
+    data_21_mean <- mean(data_21)
+    
+    #Append the vector which will be returned with the mean data
+    array_21 <- append(array_21, data_21_mean)
+  }
+  return(array_21)
+}
+
+```
+
+
+22.  Use your function with arguments ```lambda``` = 2.4, ```simulations``` = 1000, ```n``` = 40 to create a vector of sample mean values of Richter Scale readings.  Let $\bar{X}$ represent this data.  Plot a histogram of the data.  Describe the distribution of $\bar{X}$.  Is $\bar{X}$ distributed differently than $X$?
+
+Since each data point in this histogram is the mean of all the simulations, X-bar is more resembled of a normal distribution, which it should be since this type of means should be normally distributed.
+```{r}
+x_bar_22 <- richter_scale(2.4,1000,40)
+hist(x_bar_22, prob = TRUE, main = "Empirical Distribution of Richter Scale Values", xlab = "X values")
+
+```
+
+
+23.  Calculate the sample mean and sample variance for the data simulated in #18.  Calculate the population variance given $\lambda$ = 2.4.
+
+```{r}
+mean_23 <- mean(data_18)
+svariance_23 <- var(data_18)
+pvariance_23 <- mean((data_18 - 2.4)^2)
+
+print(paste("Sample mean:", toString(mean_23)))
+print(paste("Sample variance:", toString(svariance_23)))
+print(paste("Population variance:", toString(pvariance_23)))
+
+```
+
+
+24.  Create a plot of $\bar{X}$.  Make sure to set ```prob=TRUE``` in the ```hist()``` function.  Include vertical lines for the sample and theoretical mean values (red = sample mean, blue = theoretical mean).
+
+```{r}
+hist(x_bar_22, prob = TRUE, main = "X_bar with Theoretical and Sample Mean Values", xlab = "Sample Mean")
+abline(v = c(mean(x_bar_22), 2.4), col = c("red", "blue"))
+
+```
+
+
+25.  Add lines to our plot of $\bar{X}$ to plot the density for both our simulated sample and theoretical population (Hint: use ```dnorm(x, mean=lambda, sd=(lambda/sqrt(n))``` to calculate theorical population density).  Make sure to set ```prob=TRUE``` in the ```hist()``` function. 
+
+```{r}
+x_25 <- seq(2.2, 2.6, by = 0.05)
+theo_pop_den <- dnorm(x_25, mean = 2.4, sd = (2.4/sqrt(40)))
+hist(x_bar_22, prob = TRUE, main = "X_bar with Theoretical and Empirical Means with Normal Dist", xlab = "Sample Mean")
+abline(v = c(mean(data_18), 2.4), col = c("red", "blue"))
+par(new = TRUE)
+plot(theo_pop_den, type = "l", axes = FALSE, xlab = "", ylab = "")
+axis(side = 4)
+
+```
+
+
+26.  The Central Limit Theorem states that if you take many repeated samples from a population, and calculate the averages or sum of each one, the collection of those averages will be normally distributed. Does the shape of the distribution of $X$ matter with respect to the distribution of $\bar{X}$?  Is this true for all **any** parent distribution of $\bar{X}$?
+
+The shape of the distribution of X will not impact whether or not X_bar is normally distributed or not. What X can impact is the how fat the tails are and other differences in characteristics which can be found in other normal distributions. This should be true for any parent distribution since X_bar is means of different simulations, and their results will always fall in a normal distribution, it does not matter whether it is a geometric, exponential, or binomial.
+
+
+27.  What will happen to the distribution of $\bar{X}$ if you re-run your function with arguments ```lambda``` = 2.4, ```simulations``` = 10000, ```n``` = 40?  How does the variance of $\bar{X}$ change from our data simulated for $\bar{X}$ in #25?  Create a figure with the histograms (```prob=TRUE```) for both of our $\bar{X}$ sampling distributions.  Explain the difference in the two distributions of $\bar{X}$ (simulations = 1000, simulations = 10000).
+
+Since the simulations are increasing, the variance for X_bar is decreased compared to X_bar in 25. This is because when there is an increased amount of simulations to take an average of to use as data points in order to calculate X_bar, the closer they will all be to each other. Hence the lower variance.
+```{r}
+data_27 <- richter_scale(2.4, 10000, 40)
+var_27 <- var(data_27)
+par(mfrow=c(1,2))
+hist(data_27, prob = TRUE, main = "Empirical With 10000 Simulations", xlab = "Average")
+hist(x_bar_22, prob = TRUE, main = "Empirical With 1000 Simulations", xlab = "Average")
+print(var_27)
+
+```
+
+
+28.  Now explore what will happen to the distribution of $\bar{X}$ if you re-run your function with arguments ```lambda``` = 2.4, ```simulations``` = 10000, ```n``` = 10?  How does the variance of $\bar{X}$ change from our data simulated for $\bar{X}$ in #25?  Create a figure with the histograms (```prob=TRUE```) for our $\bar{X}$ sampling distributions (n = 40, n = 10).  Explain the difference in the two distributions of $\bar{X}$
+
+The variance of X_bar for 28 has a larger variance, I tested to run this several times. This is because since there are fewer data points to calculate the variance on in 28, the variance gets greater. It is also harder to see whether the distribution is indeed normal from the small amount of data points. 
+```{r}
+data_28 <- richter_scale(2.4, 1000, 10)
+var_28 <- var(data_28)
+par(mfrow=c(1,2))
+hist(data_28, prob = TRUE, main = "Empirical With 10 n", xlab = "Average")
+hist(x_bar_22, prob = TRUE, main = "Empirical With 100 n", xlab = "Average")
+print(var_28)
+
+```
+
+
+29. In 3-4 sentences, summarize your findings for questions 26-28.  What role does $n$ (sample size) play in the variance of $\bar{X}$?
+
+When $n$ is higher, the variance of the variance over several tries gets lower. This is because when there are fewer data points to calculate the variance on for each try, there will be more room for deviations. When simulations are higher, the vairance itself will be lower because when there are more data points to use for the initial variance, there is a higher chance of having the data more resemble a normal distribution
+
+
+
+EXTRA CREDIT: Choose a probability distribution that we have not studied in class and repeat the above exercises.
